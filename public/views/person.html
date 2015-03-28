@@ -1,0 +1,38 @@
+<div class="jumbotron text-center">
+ <div class="row">
+    <h2>Persons filed: <span class="label label-info">{{ persons.length }}</span></h2>
+ </div>
+	<form class="form-inline">
+	  <div class="form-group">
+	    <input type="text" class="form-control" ng-model="fname" placeholder="First Name">
+	  </div>
+	  <div class="form-group">
+	    <input type="text" class="form-control" ng-model="lname" placeholder="Last Name">
+	  </div>
+	  <button type="submit" class="btn btn-default" ng-click=addPerson()>Add Person</button>
+	</form>
+</div>
+
+<div id="persons-list" class="row">
+    <div class="col-sm-5 col-sm-offset-3">
+        <table class="table table-bordered table-hover vtable">
+            <caption>Person`s list</caption>
+            <thead>
+                <tr>
+                    <th class='t-data'>First</th>
+                    <th class='t-data'>Last</th>
+                    <th class='t-controls'></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="person in persons">
+                    <td><edit-in-place value="person.name.first" update="person"></edit-in-place></td>
+                   	<td><edit-in-place value="person.name.last" update="person"></edit-in-place></td>
+                   <!-- <td><div click-to-edit="person.name.last"></div></td>-->
+                    <td>
+                    	<button class="btn btn-xs btn-danger" ng-click=deletePerson(person)><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                    </td>
+                </tr>
+	        </tbody>
+    </div>
+</div>

@@ -1,0 +1,35 @@
+/*
+Here will be styling:)
+*/
+/* Inline Editor*/
+.edit-in-place span {
+    cursor: pointer;
+    display: block;
+}
+.edit-in-place input {
+   display: none;
+   width:120px;
+   padding:0 2%;
+   margin:0; 
+}
+.edit-in-place.active span {
+    display: none;
+}
+.edit-in-place.active input {
+    display: inline-block;
+    
+	background: none !important;
+	  border-top: none;
+	  border-left: none;
+	  border-bottom: black inset 1px;
+	  border-right: none;
+	  outline: none;
+}
+
+.t-controls{
+	max-width:60px;
+}
+
+.t-data{
+	min-width:150px;
+}
