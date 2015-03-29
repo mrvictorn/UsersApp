@@ -1,13 +1,18 @@
-var app=angular.module('usersApp', ['ngRoute', 'ngResource','appRoutes','MainCtrl', 'PersonCtrl', 'PersonService']);
+var app=angular.module('usersApp', ['ngRoute', 'ngResource','appRoutes','MainCtrl', 'PersonsCtrl', 'PersonsService','CustomersCtrl', 'CustomersService']);
 
 app.directive('editInPlace', function () {
     return {
         restrict: 'E',
         scope: {
             value: '=',
-            update: '=update'
+            update: '=update',
         },
-        template: '<span ng-click="edit()" ng-bind="value"></span><input ng-model="value"></input>',
+        templateUrl: function(elem, attr){
+            var type ='';
+            if (attr.type && attr.type =='date') 
+                type = 'Date';
+            return 'views/editInPlace'+type+'.html';
+        },
         link: function ($scope, element, attrs) {
             var inputElement = angular.element(element.children()[1]);
             element.addClass('edit-in-place');
@@ -51,46 +56,36 @@ app.directive('editInPlace', function () {
     };
 });
 
-app.directive("clickToEdit", function() {
-    var editorTemplate = '<div class="click-to-edit">' +
-        '<div ng-click="enableEditor()" ng-hide="view.editorEnabled">' +
-            '{{value}} ' +
-        '</div>' +
-        '<div ng-show="view.editorEnabled">' +
-            '<input ng-model="view.editableValue">' +
-            '<a href="#" ng-click="save()">Save</a>' +
-            ' or ' +
-            '<a ng-click="disableEditor()">cancel</a>.' +
-        '</div>' +
-    '</div>';
+app.config(["$httpProvider", function ($httpProvider) {
+    $httpProvider.defaults.transformResponse.push(function(responseData){
+        convertDateStringsToDates(responseData);
+        return responseData;
+    });
+}]);
 
-    return {
-        restrict: "A",
-        replace: true,
-        template: editorTemplate,
-        scope: {
-            value: "=clickToEdit",
-        },
-        controller: function($scope) {
-            $scope.view = {
-                editableValue: $scope.value,
-                editorEnabled: false
-            };
+var regexIso8601 = /^(\d{4}|\+\d{6})(?:-(\d{2})(?:-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})\.(\d{1,})(Z|([\-+])(\d{2}):(\d{2}))?)?)?)?$/;
 
-            $scope.enableEditor = function() {
-                $scope.view.editorEnabled = true;
-                $scope.view.editableValue = $scope.value;
-            };
+function convertDateStringsToDates(input) {
+    // Ignore things that aren't objects.
+    if (typeof input !== "object") return input;
 
-            $scope.disableEditor = function() {
-                $scope.view.editorEnabled = false;
-            };
+    for (var key in input) {
+        if (!input.hasOwnProperty(key)) continue;
 
-            $scope.save = function() {
-                $scope.value = $scope.view.editableValue;
-                $scope.disableEditor();
-            };
+        var value = input[key];
+        var match;
+        // Check for string properties which look like dates.
+        // TODO: Improve this regex to better match ISO 8601 date strings.
+        if (typeof value === "string" && (match = value.match(regexIso8601))) {
+            // Assume that Date.parse can parse ISO 8601 strings, or has been shimmed in older browsers to do so.
+            var milliseconds = Date.parse(match[0]);
+            if (!isNaN(milliseconds)) {
+                input[key] = new Date(milliseconds);
+            }
+        } else if (typeof value === "object") {
+            // Recurse into object
+            convertDateStringsToDates(value);
         }
-    };
-});
+    }
+}
 

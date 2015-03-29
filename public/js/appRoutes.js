@@ -4,9 +4,13 @@ angular.module('appRoutes', []).config(['$routeProvider', '$locationProvider', f
             templateUrl: 'views/home.html',
             controller: 'MainController'
         })
+        .when('/customers', {
+            templateUrl: 'views/customers.html',
+            controller: 'CustomersController'
+        })
         .when('/persons', {
-            templateUrl: 'views/person.html',
-            controller: 'PersonController'
+            templateUrl: 'views/persons.html',
+            controller: 'PersonsController'
         });
     $locationProvider.html5Mode(true);
 }]);
