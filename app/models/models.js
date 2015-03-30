@@ -1,83 +1,87 @@
 var mongoose = require('mongoose');
-var 
-var Person = {
-	constructor: function(afirst,alast,adayOfBirth){
-		this.name = {
-			first:afirst,
-			last:alast
-		};
-		this.dayOfBirthBirth = adayOfBirthBirth;
-		return this;
-	}, 
-	getSchema: function (){
-		return {
-			name: {
-			    	first: {type : String, default: ''},
-			   		last:  {type : String, default: ''}
-			   	},
-			dateOfBirth: Date
-		};
-	},
-	getModelName: function (){
-		return 'Person';
-	},
-	getName: function (){
-		return this.name.first+' '+this.name.last;
-	},
-	parseBody:function(aBody){ // parse req.body
-		if (!aBody || !aBody.name ) return undefined;// means error happened
-		var fname = aBody.name.first,
-		lname = aBody.name.last,
-		dOfB = aBody.dateOfBirth;
-		if (fname && lname && fname.length>0 && lname.length>0) {
-			return {
-				name.first:fname,
-				name.last:lname,
-				dateOfBirth:dOfB
-			};
-		} else return undefined;
 
-	}
-	saveModel:function(aBody,id){  // save model 
+function PersonCtrl(){
+	this.getModelName = function (){
+		return 'Person';
+	};
+	this.getName = function (){
+		return this.name.first+' '+this.name.last;
+	};
+	this.createFromBody = function(aBody,callB){  // CREATE: new objects
+		return this.save(aBody,undefined,callB);
+	};
+	this.find = function(a,b,c,d){  // READ ALL: find objects
+		return	this.model().find(a,b,c,d);
+	};
+	this.save = function(aBody,id,callB){  // UPDATE save object 
 		var _data = this.parseBody(aBody); 
 		if (!_data) return undefined;
-		try {
-			this.model().update({ _id: id }, { $set: _data}, function(err){
-				console.log(err);
-			} );
-		} catch (e) {
-			console.log('Error saving model:'+e);
-			return false;
-		}
-		return true;
-	}
-	model:function(){
-		var myModel,
-		mName = this.getModelName(),
-		mSchema = this.getSchema();
-		function _getModel(){
-			if(!myModel) {
-				return mongoose.model(mName,mSchema);
-			} else {
-				return myModel;
-			}
+		if (id) {
+			this.model().update({ _id: id },_data, callB);
+		} else {
+			var mod = this.model()(_data);
+			mod.save(callB);
 		};
-		return _getModel();
-	}
+	};
+	this.remove = function(a,b,c,d){  // DELETE
+		return	this.model().remove(a,b,c,d);
+	};
+	this.model = function(){ 
+		return	this._model.get();
+	};
+	this._model = (function (obj) {
+	    var objModel;
+	    function createModel() {
+	    	var name = obj.getModelName();
+	    	var object = mongoose.model(name,obj.getSchema());
+	        return object;
+	    }
+	    return {
+	        get: function () {
+	            if (!objModel) {
+	                objModel = createModel();
+	            }
+	            return objModel;
+	        }
+	    };
+	})(this);
 }
 
-var Customer = Object.create(Person);
-Customer.constructor = function(aFName,aLName,aDayOfBirth,aCompanyName,aMobilePhone,aWorkPhone,aSkype){
-	Person.constructor.apply(this,arguments);
-	this.companyName = aCompanyName;
-	this.phone = {
-		mobile:aMobilePhone,
-		work:aWorkPhone
+PersonCtrl.prototype.getSchema = function (){
+	return {
+		name: {
+		    	first: {type : String, default: ''},
+		   		last:  {type : String, default: ''}
+		   	},
+		dateOfBirth: Date
 	};
-	this.skype = aSkype;
 };
-Customer.getSchema = function (){
-	parentSch = Person.getSchema();
+
+PersonCtrl.prototype.parseBody = function(aBody){ // parse req.body
+	if (!aBody || !aBody.name ) return undefined;// means error happened
+	var fname = aBody.name.first,
+	lname = aBody.name.last,
+	dOfB = aBody.dateOfBirth;
+	if (fname && lname && fname.length>0 && lname.length>0) {
+		return {
+			name:{
+				first:fname,
+				last:lname
+			},
+			dateOfBirth:dOfB
+		};
+	} else return undefined;
+
+};
+
+function CustomerCtrl(){
+
+}
+
+CustomerCtrl.prototype = new PersonCtrl();
+
+CustomerCtrl.prototype.getSchema = function (){
+	parentSch = PersonCtrl.prototype.getSchema();
 	parentSch.companyName = {type : String, default: ''};
 	parentSch.phone = {
         mobile: {type : String, default: ''},
@@ -86,31 +90,28 @@ Customer.getSchema = function (){
 	parentSch.skype = {type : String, default: ''};
 	return parentSch;
 };
-Customer.getModelName = function (){
+CustomerCtrl.prototype.getModelName = function (){
 	return 'Customer';
 };
-Customer.parseBody = function(aBody){ 
-	var re = Person.parseBody.apply(this,aBody);
+CustomerCtrl.prototype.parseBody = function(aBody){ 
+	var re = PersonCtrl.prototype.parseBody(aBody);
 	if (!re) return undefined;
-	var cname = aBody.CompanyName,
+	var cname = aBody.companyName,
 	mphone = aBody.phone.mobile,
-	wphone = aBody.phone.work;
+	wphone = aBody.phone.work,
 	skype = aBody.skype;
 	if (cname && cname.length>0) {
+		re.companyName = cname;
 		re.phone = {
 			mobile:mphone,
 			work:wphone
 		};
 		re.skype = skype;
+
 		return re;
 		} else return undefined;
 };
-Customer.saveModel = function(aBody,aModel,id){ // save model  
-		var _data = this.ParseBody(aBody);
-		if (!_data) return undefined;// means error in parsing req.body happened
-		return Person.saveModel.apply(this,arguments);
-};
 
-exports.Person = Person;
-exports.Customer = Customer;
+exports.Person = new PersonCtrl();
+exports.Customer = new CustomerCtrl();
 

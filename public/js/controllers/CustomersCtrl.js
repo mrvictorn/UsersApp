@@ -20,7 +20,7 @@ angular.module('CustomersCtrl', []).controller('CustomersController', ['$scope',
   				last: $scope.lname
   			};
   			newCustomer.dateOfBirth = dateOfBirth;
-        newCustomer.CompanyName = cname;
+        newCustomer.companyName = cname;
         newCustomer.phone = {
           mobile:mphone,
           work:wphone
