@@ -9,11 +9,6 @@ mongoose.connect(db.url);
 
 app.use(bodyParser.json());
 
-app.use(function (req, res, next) {
-	console.log(Date.now());
-  console.log(req.body) // populated!
-  next()
-}); 
 
 app.use(express.static(__dirname + '/public')); 
 
